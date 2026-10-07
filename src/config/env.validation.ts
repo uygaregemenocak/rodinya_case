@@ -1,5 +1,5 @@
 import { plainToInstance, Type } from 'class-transformer';
-import { IsIn, IsInt, IsString, MinLength, validateSync } from 'class-validator';
+import { IsIn, IsInt, IsString, Min, MinLength, validateSync } from 'class-validator';
 
 export class EnvironmentVariables {
   @IsIn(['development', 'production', 'test'])
@@ -10,8 +10,25 @@ export class EnvironmentVariables {
   PORT: number = 3000;
 
   @IsString()
+  MONGO_URI: string;
+
+  @IsString()
   @MinLength(32)
   JWT_ACCESS_SECRET: string;
+
+  @IsString()
+  @MinLength(32)
+  JWT_REFRESH_SECRET: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(60)
+  JWT_ACCESS_TTL: number = 900;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(300)
+  JWT_REFRESH_TTL: number = 604800;
 }
 
 export function validate(config: Record<string, unknown>) {
