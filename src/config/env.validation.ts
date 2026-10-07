@@ -43,6 +43,11 @@ export class EnvironmentVariables {
   @IsString()
   UPLOAD_DIR: string = './uploads';
 
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  MAX_FILE_SIZE: number = 5242880;
+
   @IsString()
   @MinLength(32)
   STORAGE_SIGNING_SECRET: string;
