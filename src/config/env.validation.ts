@@ -1,5 +1,15 @@
 import { plainToInstance, Type } from 'class-transformer';
-import { IsIn, IsInt, IsString, Min, MinLength, validateSync } from 'class-validator';
+import {
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Max,
+  Min,
+  MinLength,
+  validateSync,
+} from 'class-validator';
 
 export class EnvironmentVariables {
   @IsIn(['development', 'production', 'test'])
@@ -29,6 +39,24 @@ export class EnvironmentVariables {
   @IsInt()
   @Min(300)
   JWT_REFRESH_TTL: number = 604800;
+
+  @IsString()
+  UPLOAD_DIR: string = './uploads';
+
+  @IsString()
+  @MinLength(32)
+  STORAGE_SIGNING_SECRET: string;
+
+  // seconds, S3 also doesn't allow more than 7 days
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(604800)
+  PRESIGNED_URL_TTL: number = 300;
+
+  @IsOptional()
+  @IsUrl({ require_tld: false, require_protocol: true })
+  PUBLIC_BASE_URL?: string;
 }
 
 export function validate(config: Record<string, unknown>) {
