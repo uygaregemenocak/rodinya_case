@@ -7,6 +7,7 @@ export class LoginDto {
   @ApiProperty({ example: 'jane@example.com' })
   @Transform(normalizeEmail)
   @IsEmail()
+  @MaxLength(254)
   email: string;
 
   @ApiProperty({ example: 'Passw0rd!' })

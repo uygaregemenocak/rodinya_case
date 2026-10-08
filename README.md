@@ -132,7 +132,7 @@ Adding and removing permissions uses `$addToSet` and `$pull`, so two requests at
 - The JWT guard runs before the file is read, so requests without a token never write anything to disk.
 - The file streams straight to disk through a custom multer storage engine. Nothing is kept in memory.
 - The `Content-Type` sent by the client is checked first, but the real check is on the first bytes of the file (`FF D8 FF`). A PNG renamed to `.jpg` is rejected.
-- The 5MB limit is checked while the file streams, so a big upload is stopped right away.
+- Multer stops the upload as soon as it goes over `MAX_FILE_SIZE` (5MB by default) and returns `413`, so a big file is never fully received.
 - Files are written to a temp file and renamed when complete, so a half uploaded file is never visible.
 - If saving to the database fails, the file is deleted. When deleting media, the db record is removed first and then the file.
 

@@ -16,6 +16,16 @@ export interface SendObjectOptions {
 
 const logger = new Logger('SendObject');
 
+// headers that describe the file, set before we start streaming it
+const FILE_HEADERS = [
+  'Content-Type',
+  'ETag',
+  'Last-Modified',
+  'Accept-Ranges',
+  'Cache-Control',
+  'Content-Disposition',
+];
+
 // Streams a stored object to the response. Handles If-None-Match (304) and
 // simple Range requests (206) so browsers can cache and resume downloads.
 export async function sendObject(
@@ -71,8 +81,12 @@ export async function sendObject(
   try {
     object = await storage.getObject(bucket, key, range);
   } catch (error) {
-    // file could be deleted between headObject and getObject
+    // File could be deleted between headObject and getObject. The file
+    // headers are already set, remove them so the 404 isn't sent as a jpeg.
     if (error instanceof ObjectNotFoundError) {
+      for (const header of FILE_HEADERS) {
+        res.removeHeader(header);
+      }
       throw new NotFoundException('File not found');
     }
     throw error;

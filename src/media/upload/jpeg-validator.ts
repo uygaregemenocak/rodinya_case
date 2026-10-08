@@ -7,9 +7,10 @@ import { Transform, TransformCallback } from 'node:stream';
 // every jpeg file starts with these bytes
 const JPEG_SIGNATURE = Buffer.from([0xff, 0xd8, 0xff]);
 
-// Sits between the upload stream and the disk. Checks the first bytes of the
-// file (the Content-Type header can't be trusted) and stops the upload as
-// soon as it goes over the size limit.
+// Sits between the upload stream and the disk and checks the first bytes of
+// the file (the Content-Type header can't be trusted). In the upload route
+// multer already cuts the file off at MAX_FILE_SIZE, the size check here is
+// only a backup in case the validator is used somewhere without multer.
 export class JpegValidator extends Transform {
   private bytesReceived = 0;
   private firstBytes = Buffer.alloc(0);
