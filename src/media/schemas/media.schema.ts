@@ -42,7 +42,11 @@ export type MediaRecord = Media & { _id: Types.ObjectId };
 
 export const MediaSchema = SchemaFactory.createForClass(Media);
 
-// for GET /media/my (newest first)
-MediaSchema.index({ ownerId: 1, createdAt: -1 });
+// The lists are sorted by createdAt and then _id, so both fields are in the
+// index too. Otherwise mongo finds the documents with the index but still has
+// to sort them in memory.
+
+// for GET /media/my
+MediaSchema.index({ ownerId: 1, createdAt: -1, _id: -1 });
 // for GET /media/shared
-MediaSchema.index({ allowedUserIds: 1, createdAt: -1 });
+MediaSchema.index({ allowedUserIds: 1, createdAt: -1, _id: -1 });

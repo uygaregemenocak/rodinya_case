@@ -142,7 +142,7 @@ Adding and removing permissions uses `$addToSet` and `$pull`, so two requests at
 - The presigned url endpoint doesn't touch the database, it only checks the signature. Loading a page with lots of images doesn't mean lots of permission queries.
 - Presigned url expiry is rounded up to the next minute, so the same image gets the same url for a while and the browser can cache it.
 - Downloads support `ETag` / `304 Not Modified` and `Range` requests.
-- Indexes on `{ ownerId, createdAt }` and `{ allowedUserIds, createdAt }` for the list endpoints, a unique index on email, and a TTL index on sessions.
+- Indexes on `{ ownerId, createdAt, _id }` and `{ allowedUserIds, createdAt, _id }` for the list endpoints. They match the sort order exactly, so MongoDB reads the results in order from the index instead of sorting them in memory. There's also a unique index on email and a TTL index on sessions.
 - Queries use `.lean()`, and the list endpoint runs the find and the count in parallel.
 
 ## Tests

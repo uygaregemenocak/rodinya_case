@@ -6,12 +6,7 @@ import { User } from '@users/schemas/user.schema.js';
 // jti, it gets replaced every time the token is refreshed.
 @Schema({ collection: 'sessions', timestamps: true, versionKey: false })
 export class Session {
-  @Prop({
-    type: MongooseSchema.Types.ObjectId,
-    ref: User.name,
-    required: true,
-    index: true,
-  })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: User.name, required: true })
   userId: Types.ObjectId;
 
   @Prop({ required: true })
