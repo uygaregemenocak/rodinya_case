@@ -2,8 +2,8 @@ import type { Request } from 'express';
 import { Types } from 'mongoose';
 import type { StorageEngine } from 'multer';
 import { pipeline } from 'node:stream';
-import type { AuthenticatedRequest } from '../../common/auth-user.js';
-import type { ObjectStorage } from '../../storage/object-storage.js';
+import type { AuthenticatedRequest } from '@common/auth-user.js';
+import type { ObjectStorage } from '@storage/object-storage.js';
 import { MEDIA_BUCKET } from '../schemas/media.schema.js';
 import { JpegValidator } from './jpeg-validator.js';
 

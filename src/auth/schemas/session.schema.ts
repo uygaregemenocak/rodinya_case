@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose';
-import { User } from '../../users/schemas/user.schema.js';
+import { User } from '@users/schemas/user.schema.js';
 
 // One session per login. We only keep a hash of the current refresh token's
 // jti, it gets replaced every time the token is refreshed.

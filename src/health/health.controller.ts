@@ -12,7 +12,7 @@ import type { Response } from 'express';
 import type { Connection } from 'mongoose';
 import { constants } from 'node:fs';
 import { access, mkdir } from 'node:fs/promises';
-import { Public } from '../common/decorators/public.decorator.js';
+import { Public } from '@common/decorators/public.decorator.js';
 
 @ApiTags('Health')
 @Public()

@@ -18,8 +18,8 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { Public } from '../common/decorators/public.decorator.js';
-import { ErrorResponseDto } from '../common/swagger/error-response.dto.js';
+import { Public } from '@common/decorators/public.decorator.js';
+import { ErrorResponseDto } from '@common/swagger/error-response.dto.js';
 import { AuthService } from './auth.service.js';
 import { AuthResponseDto } from './dto/auth-response.dto.js';
 import { LoginDto } from './dto/login.dto.js';

@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { describe, expect, it } from 'vitest';
-import type { AuthUser } from '../../common/auth-user.js';
+import type { AuthUser } from '@common/auth-user.js';
 import type { MediaRecord } from '../schemas/media.schema.js';
 import { canAccessMedia } from './media-access.guard.js';
 

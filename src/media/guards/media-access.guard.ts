@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import type { AuthenticatedRequest, AuthUser } from '../../common/auth-user.js';
+import type { AuthenticatedRequest, AuthUser } from '@common/auth-user.js';
 import { MediaService } from '../media.service.js';
 import type { MediaRecord } from '../schemas/media.schema.js';
 

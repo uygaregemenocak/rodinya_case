@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import type { UserRole } from '../../common/auth-user.js';
+import type { UserRole } from '@common/auth-user.js';
 import type { UserRecord } from '../schemas/user.schema.js';
 
 export class UserResponseDto {

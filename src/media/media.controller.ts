@@ -30,11 +30,11 @@ import {
   ApiUnsupportedMediaTypeResponse,
 } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
-import type { AuthUser } from '../common/auth-user.js';
-import { CurrentUser } from '../common/decorators/current-user.decorator.js';
-import { ErrorResponseDto } from '../common/swagger/error-response.dto.js';
-import { ObjectStorage } from '../storage/object-storage.js';
-import { sendObject } from '../storage/send-object.js';
+import type { AuthUser } from '@common/auth-user.js';
+import { CurrentUser } from '@common/decorators/current-user.decorator.js';
+import { ErrorResponseDto } from '@common/swagger/error-response.dto.js';
+import { ObjectStorage } from '@storage/object-storage.js';
+import { sendObject } from '@storage/send-object.js';
 import {
   CurrentMedia,
   MediaAccess,

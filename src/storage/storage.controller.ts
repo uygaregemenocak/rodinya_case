@@ -18,8 +18,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
-import { Public } from '../common/decorators/public.decorator.js';
-import { ErrorResponseDto } from '../common/swagger/error-response.dto.js';
+import { Public } from '@common/decorators/public.decorator.js';
+import { ErrorResponseDto } from '@common/swagger/error-response.dto.js';
 import { ObjectStorage } from './object-storage.js';
 import { getObjectKey, PresignedUrlGuard } from './presigned-url.guard.js';
 import { sendObject } from './send-object.js';

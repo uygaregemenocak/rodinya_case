@@ -6,9 +6,9 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import type { AuthUser } from '../common/auth-user.js';
-import { CurrentUser } from '../common/decorators/current-user.decorator.js';
-import { ErrorResponseDto } from '../common/swagger/error-response.dto.js';
+import type { AuthUser } from '@common/auth-user.js';
+import { CurrentUser } from '@common/decorators/current-user.decorator.js';
+import { ErrorResponseDto } from '@common/swagger/error-response.dto.js';
 import { toUserResponse, UserResponseDto } from './dto/user-response.dto.js';
 import { UsersService } from './users.service.js';
 

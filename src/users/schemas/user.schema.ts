@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import type { UserRole } from '../../common/auth-user.js';
+import type { UserRole } from '@common/auth-user.js';
 
 @Schema({ collection: 'users', timestamps: true, versionKey: false })
 export class User {

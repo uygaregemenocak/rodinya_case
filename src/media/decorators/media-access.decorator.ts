@@ -10,7 +10,7 @@ import {
   ApiNotFoundResponse,
   ApiParam,
 } from '@nestjs/swagger';
-import { ErrorResponseDto } from '../../common/swagger/error-response.dto.js';
+import { ErrorResponseDto } from '@common/swagger/error-response.dto.js';
 import {
   MEDIA_ACCESS_KEY,
   MediaAccessGuard,

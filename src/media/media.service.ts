@@ -6,10 +6,10 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model, Types } from 'mongoose';
-import type { AuthUser } from '../common/auth-user.js';
-import { ObjectStorage } from '../storage/object-storage.js';
-import { UrlPresigner } from '../storage/url-presigner.js';
-import { UsersService } from '../users/users.service.js';
+import type { AuthUser } from '@common/auth-user.js';
+import { ObjectStorage } from '@storage/object-storage.js';
+import { UrlPresigner } from '@storage/url-presigner.js';
+import { UsersService } from '@users/users.service.js';
 import {
   MediaListResponseDto,
   MediaResponseDto,

@@ -5,10 +5,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as argon2 from 'argon2';
 import { Model, Types } from 'mongoose';
 import { createHash, randomUUID } from 'node:crypto';
-import type { AccessTokenPayload } from '../common/auth-user.js';
-import { toUserResponse } from '../users/dto/user-response.dto.js';
-import type { UserRecord } from '../users/schemas/user.schema.js';
-import { UsersService } from '../users/users.service.js';
+import type { AccessTokenPayload } from '@common/auth-user.js';
+import { toUserResponse } from '@users/dto/user-response.dto.js';
+import type { UserRecord } from '@users/schemas/user.schema.js';
+import { UsersService } from '@users/users.service.js';
 import type { AuthResponseDto } from './dto/auth-response.dto.js';
 import { Session } from './schemas/session.schema.js';
 
