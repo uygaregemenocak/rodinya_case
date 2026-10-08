@@ -1,4 +1,4 @@
-import { Module, UnsupportedMediaTypeException } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MulterModule } from '@nestjs/platform-express';
@@ -9,6 +9,7 @@ import { MediaAccessGuard } from './guards/media-access.guard.js';
 import { MediaController } from './media.controller.js';
 import { MediaService } from './media.service.js';
 import { Media, MediaSchema } from './schemas/media.schema.js';
+import { notJpegError } from './upload/jpeg-validator.js';
 import { MediaStorageEngine } from './upload/media-storage.engine.js';
 
 const JPEG_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/pjpeg'];
@@ -35,12 +36,7 @@ const JPEG_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/pjpeg'];
             if (JPEG_MIME_TYPES.includes(file.mimetype)) {
               callback(null, true);
             } else {
-              callback(
-                new UnsupportedMediaTypeException(
-                  'Only JPEG images are accepted',
-                ),
-                false,
-              );
+              callback(notJpegError(), false);
             }
           },
         };

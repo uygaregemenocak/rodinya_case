@@ -57,6 +57,6 @@ export class JpegValidator extends Transform {
   }
 }
 
-function notJpegError() {
+export function notJpegError() {
   return new UnsupportedMediaTypeException('Only JPEG images are accepted');
 }

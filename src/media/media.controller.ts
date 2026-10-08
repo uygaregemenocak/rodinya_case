@@ -66,7 +66,10 @@ export class MediaController {
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  @ApiOperation({ summary: 'Upload a JPEG image (max 5MB)' })
+  @ApiOperation({
+    summary: 'Upload a JPEG image',
+    description: 'Max size is MAX_FILE_SIZE from the env (5MB by default).',
+  })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {

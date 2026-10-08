@@ -25,10 +25,11 @@ export class UsersService {
     }
   }
 
-  // only used by login, this is the one place we need the hash
+  // only used by login, this is the one place we need the hash.
+  // email is already lowercased by the LoginDto
   findByEmailWithPassword(email: string) {
     return this.userModel
-      .findOne({ email: email.toLowerCase() })
+      .findOne({ email })
       .select('+passwordHash')
       .lean<UserRecord>()
       .exec();
