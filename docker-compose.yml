@@ -1,0 +1,34 @@
+# For running without an Atlas account: docker compose up --build
+services:
+  mongo:
+    image: mongo:8
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 })']
+      interval: 5s
+      retries: 10
+
+  api:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      MONGO_URI: mongodb://mongo:27017/media-library
+      JWT_ACCESS_SECRET: local-dev-access-secret-not-for-production-use
+      JWT_REFRESH_SECRET: local-dev-refresh-secret-not-for-production-use
+      STORAGE_SIGNING_SECRET: local-dev-signing-secret-not-for-production-use
+      UPLOAD_DIR: /app/uploads
+      MAX_FILE_SIZE: 5242880
+      PORT: 3000
+      PUBLIC_BASE_URL: http://localhost:3000
+      NODE_ENV: production
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo-data:
+  uploads:
