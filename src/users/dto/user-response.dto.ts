@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import type { UserRole } from '@common/auth-user.js';
+import { USER_ROLES, type UserRole } from '@common/auth-user.js';
 import type { UserRecord } from '../schemas/user.schema.js';
 
 export class UserResponseDto {
@@ -9,7 +9,7 @@ export class UserResponseDto {
   @ApiProperty({ example: 'jane@example.com' })
   email: string;
 
-  @ApiProperty({ enum: ['user', 'admin'], example: 'user' })
+  @ApiProperty({ enum: USER_ROLES, example: 'user' })
   role: UserRole;
 
   @ApiProperty()

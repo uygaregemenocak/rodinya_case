@@ -1,10 +1,10 @@
 import { Types } from 'mongoose';
 import { describe, expect, it } from 'vitest';
-import type { AuthUser } from '@common/auth-user.js';
+import type { AuthUser, UserRole } from '@common/auth-user.js';
 import type { MediaRecord } from '../schemas/media.schema.js';
 import { canAccessMedia } from './media-access.guard.js';
 
-function createUser(role: 'user' | 'admin' = 'user'): AuthUser {
+function createUser(role: UserRole = 'user'): AuthUser {
   return { id: new Types.ObjectId().toString(), email: 'x@example.com', role };
 }
 
