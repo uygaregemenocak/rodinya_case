@@ -93,14 +93,19 @@ I wanted the file storage to work like S3 rather than just reading and writing f
 Images are given to the client with presigned urls, the same way S3 does it. When you call `GET /media/:id`, the API checks if you're allowed to see the image and returns a `url` and a `downloadUrl`:
 
 ```
-/storage/media/<ownerId>/<mediaId>.jpg?X-Algorithm=HMAC-SHA256&X-Expires=1791383880&X-Signature=...
+/storage/media/<ownerId>/<mediaId>.jpg?X-Algorithm=HMAC-SHA256&X-User-Id=<userId>&X-Expires=1791383880&X-Signature=...
 ```
 
-The signature is an HMAC-SHA256 of the path, the expiry time and the content-disposition. Changing any of them makes the url invalid (`403`). The url works without a token, so it can go straight into an `<img>` tag, and it expires after 5 minutes by default.
+The signature is an HMAC-SHA256 of the path, the user the url was made for, the expiry time and the content-disposition. Changing any of them makes the url invalid (`403`). The url works without a token, so it can go straight into an `<img>` tag, and it expires after 5 minutes by default.
 
-The `/storage/...` route is still a controller with a guard (it checks the signature), not a static folder.
+The `/storage/...` route is a controller with a guard, not a static folder. The guard checks two things on every request:
 
-One trade-off: if the owner removes someone's access, urls that person already received keep working until they expire. That's how S3 behaves too, and it's why the expiry time is kept short. The API itself stops giving them new urls right away.
+1. The signature and the expiry.
+2. Whether the user in the url can still see the file. This uses the same rules as the API (`canAccessMedia`).
+
+The second check is there because the case says users without permission can't access a file. My first version only checked the signature, so if the owner removed someone's access, the urls that person already had kept working until they expired. Now removing access works right away, for the API and for urls that were already given out. Real S3 works the same way: a presigned url is checked against the current permissions of whoever created it.
+
+The storage module doesn't know anything about media. It has a small `BucketPolicies` registry, the media module registers the read rule for the `media` bucket, and a bucket without a rule can't be read at all.
 
 `GET /media/:id/download` is also there as the case asked. It checks the token and permissions on every request and streams the file.
 
@@ -139,8 +144,8 @@ Adding and removing permissions uses `$addToSet` and `$pull`, so two requests at
 ### Performance
 
 - Uploads and downloads are streamed, so memory use doesn't depend on file size.
-- The presigned url endpoint doesn't touch the database, it only checks the signature. Loading a page with lots of images doesn't mean lots of permission queries.
-- Presigned url expiry is rounded up to the next minute, so the same image gets the same url for a while and the browser can cache it.
+- The presigned url permission check is two lookups by `_id` (the media and the user), run in parallel. That's the cost of making access removal work right away, and I think it's the right trade-off for this case.
+- Presigned url expiry is rounded up to the next minute, so the same image gets the same url for a while. The browser keeps a copy and only asks if it's still allowed (`Cache-Control: private, no-cache`), which gives a small `304` with no body when nothing changed.
 - Downloads support `ETag` / `304 Not Modified` and `Range` requests.
 - Indexes on `{ ownerId, createdAt, _id }` and `{ allowedUserIds, createdAt, _id }` for the list endpoints. They match the sort order exactly, so MongoDB reads the results in order from the index instead of sorting them in memory. There's also a unique index on email and a TTL index on sessions.
 - Queries use `.lean()`, and the list endpoint runs the find and the count in parallel.
@@ -153,7 +158,7 @@ npm run test:e2e   # e2e tests, uses mongodb-memory-server so no real db is need
 npm run lint
 ```
 
-The e2e tests start the whole app and cover register/login/refresh, uploads (valid, wrong type, too big), the permission rules for each type of user, presigned urls (valid, changed, expired, deleted file) and downloads.
+The e2e tests start the whole app and cover register/login/refresh, uploads (valid, wrong type, too big), the permission rules for each type of user, presigned urls (valid, changed, expired, deleted file, access removed) and downloads.
 
 There is also a GitHub Actions workflow that runs lint, build and tests.
 

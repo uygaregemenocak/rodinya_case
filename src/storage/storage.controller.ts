@@ -26,7 +26,8 @@ import { sendObject } from './send-object.js';
 import { STORAGE_ROUTE } from './url-presigner.js';
 
 // This is what the presigned urls point to. It only serves single files with
-// a valid signature, there is no folder listing or static serving.
+// a valid signature to users that still have access, there is no folder
+// listing or static serving.
 @ApiTags('Storage')
 @Public()
 @UseGuards(PresignedUrlGuard)
@@ -46,6 +47,7 @@ export class StorageController {
     example: '66f1c0c4e4b0a1b2c3d4e5f6/66f1c0d9e4b0a1b2c3d4e5f7.jpg',
   })
   @ApiQuery({ name: 'X-Algorithm', example: 'HMAC-SHA256' })
+  @ApiQuery({ name: 'X-User-Id', description: 'User the url was created for' })
   @ApiQuery({ name: 'X-Expires', description: 'Unix timestamp (seconds)' })
   @ApiQuery({ name: 'response-content-disposition', required: false })
   @ApiQuery({ name: 'X-Signature' })
@@ -53,7 +55,7 @@ export class StorageController {
   @ApiOkResponse({ schema: { type: 'string', format: 'binary' } })
   @ApiForbiddenResponse({
     type: ErrorResponseDto,
-    description: 'Invalid or expired signature',
+    description: 'Invalid or expired signature, or the user lost access',
   })
   @ApiNotFoundResponse({
     type: ErrorResponseDto,
@@ -61,17 +63,15 @@ export class StorageController {
   })
   getObject(
     @Param('bucket') bucket: string,
-    @Query('X-Expires') expires: string,
     @Query('response-content-disposition')
     contentDisposition: string | undefined,
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
-    // browser can cache it until the link expires
-    const secondsLeft = Number(expires) - Math.floor(Date.now() / 1000);
-
     return sendObject(req, res, this.storage, bucket, getObjectKey(req), {
-      cacheControl: `private, max-age=${Math.max(secondsLeft, 0)}`,
+      // The browser keeps a copy but has to ask us every time, so the access
+      // check runs again. If nothing changed it only gets a small 304.
+      cacheControl: 'private, no-cache',
       contentDisposition,
       allowCrossOrigin: true,
     });

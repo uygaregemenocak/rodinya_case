@@ -182,8 +182,8 @@ export class MediaController {
   @ApiOperation({
     summary: 'Give or take away view access (owner only)',
     description:
-      'Removing access works right away for the API. Presigned urls that ' +
-      'were already given out keep working until they expire (like S3).',
+      'Removing access works right away, also for presigned urls the user ' +
+      'already has.',
   })
   @ApiOkResponse({ type: PermissionsResponseDto })
   @ApiBadRequestResponse({

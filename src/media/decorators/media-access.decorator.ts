@@ -14,9 +14,9 @@ import { ErrorResponseDto } from '@common/swagger/error-response.dto.js';
 import {
   MEDIA_ACCESS_KEY,
   MediaAccessGuard,
-  MediaAccessLevel,
   MediaRequest,
 } from '../guards/media-access.guard.js';
+import type { MediaAccessLevel } from '../media-permissions.js';
 import type { MediaRecord } from '../schemas/media.schema.js';
 
 // Used on /media/:id routes. Adds the guard and the 403/404 swagger docs.

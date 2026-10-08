@@ -6,38 +6,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import type { AuthenticatedRequest, AuthUser } from '@common/auth-user.js';
+import type { AuthenticatedRequest } from '@common/auth-user.js';
+import { canAccessMedia, MediaAccessLevel } from '../media-permissions.js';
 import { MediaService } from '../media.service.js';
 import type { MediaRecord } from '../schemas/media.schema.js';
-
-// view   -> owner, users in allowedUserIds, admin
-// delete -> owner, admin
-// manage -> only the owner (changing who can see the file)
-export type MediaAccessLevel = 'view' | 'delete' | 'manage';
 
 export const MEDIA_ACCESS_KEY = 'mediaAccess';
 
 export interface MediaRequest extends AuthenticatedRequest {
   media?: MediaRecord;
-}
-
-export function canAccessMedia(
-  user: AuthUser,
-  media: MediaRecord,
-  level: MediaAccessLevel,
-): boolean {
-  const isOwner = media.ownerId.equals(user.id);
-  const isAdmin = user.role === 'admin';
-
-  if (level === 'manage') {
-    return isOwner;
-  }
-  if (level === 'delete') {
-    return isOwner || isAdmin;
-  }
-
-  const isAllowed = media.allowedUserIds.some((id) => id.equals(user.id));
-  return isOwner || isAdmin || isAllowed;
 }
 
 @Injectable()

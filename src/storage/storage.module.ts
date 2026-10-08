@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { BucketPolicies } from './bucket-policies.js';
 import { LocalObjectStorage } from './local-object-storage.js';
 import { ObjectStorage } from './object-storage.js';
 import { PresignedUrlGuard } from './presigned-url.guard.js';
@@ -17,8 +18,9 @@ import { UrlPresigner } from './url-presigner.js';
         new LocalObjectStorage(config.getOrThrow<string>('UPLOAD_DIR')),
     },
     UrlPresigner,
+    BucketPolicies,
     PresignedUrlGuard,
   ],
-  exports: [ObjectStorage, UrlPresigner],
+  exports: [ObjectStorage, UrlPresigner, BucketPolicies],
 })
 export class StorageModule {}

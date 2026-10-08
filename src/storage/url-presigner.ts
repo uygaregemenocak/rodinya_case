@@ -15,12 +15,18 @@ export interface PresignedUrl {
   expiresAt: Date;
 }
 
+export interface PresignOptions {
+  // the user the url is for, their access is checked again on every request
+  userId: string;
+  contentDisposition?: string;
+}
+
 export type SignatureCheckResult = 'valid' | 'expired' | 'invalid';
 
-// Creates and checks presigned GET urls, same idea as S3. Whoever has the url
-// can read that one object until it expires, no Authorization header needed,
-// so it can be used directly in an <img> tag. Permission checks happen before
-// we hand out the url.
+// Creates and checks presigned GET urls, same idea as S3. The url works
+// without an Authorization header so it can be used directly in an <img> tag.
+// It is signed for one user, and like in S3 that user's permissions are
+// checked again when the url is used (see BucketPolicies).
 @Injectable()
 export class UrlPresigner {
   private readonly secret: string;
@@ -42,8 +48,9 @@ export class UrlPresigner {
   presignGetObject(
     bucket: string,
     key: string,
-    contentDisposition?: string,
+    options: PresignOptions,
   ): PresignedUrl {
+    const { userId, contentDisposition } = options;
     const now = Math.floor(Date.now() / 1000);
     const expires =
       Math.ceil((now + this.defaultTtl) / EXPIRY_ROUNDING_SECONDS) *
@@ -51,13 +58,14 @@ export class UrlPresigner {
 
     const params = new URLSearchParams();
     params.set('X-Algorithm', ALGORITHM);
+    params.set('X-User-Id', userId);
     params.set('X-Expires', String(expires));
     if (contentDisposition) {
       params.set('response-content-disposition', contentDisposition);
     }
     params.set(
       'X-Signature',
-      this.sign(bucket, key, expires, contentDisposition),
+      this.sign(bucket, key, userId, expires, contentDisposition),
     );
 
     return {
@@ -72,19 +80,28 @@ export class UrlPresigner {
     query: Record<string, unknown>,
   ): SignatureCheckResult {
     const algorithm = query['X-Algorithm'];
+    const userId = query['X-User-Id'];
     const expires = String(query['X-Expires']);
     const signature = String(query['X-Signature']);
     const disposition = query['response-content-disposition'];
 
     const hasValidFormat =
       algorithm === ALGORITHM &&
+      typeof userId === 'string' &&
+      userId.length > 0 &&
       /^\d{1,12}$/.test(expires) &&
       (disposition === undefined || typeof disposition === 'string');
     if (!hasValidFormat) {
       return 'invalid';
     }
 
-    const expected = this.sign(bucket, key, Number(expires), disposition);
+    const expected = this.sign(
+      bucket,
+      key,
+      userId,
+      Number(expires),
+      disposition,
+    );
     if (!safeCompare(signature, expected)) {
       return 'invalid';
     }
@@ -99,6 +116,7 @@ export class UrlPresigner {
   private sign(
     bucket: string,
     key: string,
+    userId: string,
     expires: number,
     contentDisposition = '',
   ): string {
@@ -106,6 +124,7 @@ export class UrlPresigner {
       ALGORITHM,
       'GET',
       objectPath(bucket, key),
+      userId,
       expires,
       contentDisposition,
     ].join('\n');

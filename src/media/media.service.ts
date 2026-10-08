@@ -3,10 +3,13 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model, Types } from 'mongoose';
+import path from 'node:path';
 import type { AuthUser } from '@common/auth-user.js';
+import { BucketPolicies } from '@storage/bucket-policies.js';
 import { ObjectStorage } from '@storage/object-storage.js';
 import { UrlPresigner } from '@storage/url-presigner.js';
 import { UsersService } from '@users/users.service.js';
@@ -16,6 +19,7 @@ import {
 } from './dto/media-response.dto.js';
 import { PermissionsResponseDto } from './dto/permissions-response.dto.js';
 import { PermissionAction } from './dto/update-permission.dto.js';
+import { canAccessMedia } from './media-permissions.js';
 import { Media, MEDIA_BUCKET, MediaRecord } from './schemas/media.schema.js';
 import { UploadedMediaFile } from './upload/media-storage.engine.js';
 import {
@@ -24,7 +28,7 @@ import {
 } from './utils/file-name.utils.js';
 
 @Injectable()
-export class MediaService {
+export class MediaService implements OnModuleInit {
   private readonly logger = new Logger(MediaService.name);
 
   constructor(
@@ -32,7 +36,45 @@ export class MediaService {
     private readonly storage: ObjectStorage,
     private readonly presigner: UrlPresigner,
     private readonly usersService: UsersService,
+    private readonly bucketPolicies: BucketPolicies,
   ) {}
+
+  onModuleInit() {
+    // presigned urls for the media bucket follow the same rules as the API
+    this.bucketPolicies.setReadCheck(MEDIA_BUCKET, (userId, key) =>
+      this.canUserViewFile(userId, key),
+    );
+  }
+
+  // Runs on every presigned url request, so removing someone's access works
+  // right away. Both lookups are by _id, so they are cheap.
+  async canUserViewFile(userId: string, key: string): Promise<boolean> {
+    if (!isValidObjectId(userId)) {
+      return false;
+    }
+
+    // keys look like "<ownerId>/<mediaId>.jpg"
+    const mediaId = path.posix.basename(key, '.jpg');
+
+    const [media, user] = await Promise.all([
+      this.findById(mediaId),
+      this.usersService.findById(userId),
+    ]);
+
+    if (!media || media.filePath !== key) {
+      throw new NotFoundException('File not found');
+    }
+    if (!user) {
+      return false;
+    }
+
+    const viewer: AuthUser = {
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role,
+    };
+    return canAccessMedia(viewer, media, 'view');
+  }
 
   async findById(id: string): Promise<MediaRecord | null> {
     if (!isValidObjectId(id)) {
@@ -145,15 +187,22 @@ export class MediaService {
   }
 
   toResponse(media: MediaRecord, user: AuthUser): MediaResponseDto {
+    // the urls are signed for this user, they stop working if they lose access
     const viewUrl = this.presigner.presignGetObject(
       MEDIA_BUCKET,
       media.filePath,
-      getContentDisposition(media.fileName, 'inline'),
+      {
+        userId: user.id,
+        contentDisposition: getContentDisposition(media.fileName, 'inline'),
+      },
     );
     const downloadUrl = this.presigner.presignGetObject(
       MEDIA_BUCKET,
       media.filePath,
-      getContentDisposition(media.fileName, 'attachment'),
+      {
+        userId: user.id,
+        contentDisposition: getContentDisposition(media.fileName, 'attachment'),
+      },
     );
 
     const response: MediaResponseDto = {

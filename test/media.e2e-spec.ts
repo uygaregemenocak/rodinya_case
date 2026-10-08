@@ -372,7 +372,8 @@ describe('Media (e2e)', () => {
         'inline; filename=photo.jpg',
       );
       expect(res.headers['cross-origin-resource-policy']).toBe('cross-origin');
-      expect(res.headers['cache-control']).toMatch(/^private, max-age=\d+$/);
+      // browser has to check with us every time, see the revoke test below
+      expect(res.headers['cache-control']).toBe('private, no-cache');
       expect(Buffer.compare(res.body as Buffer, bytes)).toBe(0);
 
       const download = await ctx
@@ -413,7 +414,47 @@ describe('Media (e2e)', () => {
       extended.searchParams.set('X-Expires', '9999999999');
       await ctx.http().get(pathOf(extended.toString())).expect(403);
 
+      // valid url of the owner, but pretending to be another user
+      const otherUser = new URL(url);
+      otherUser.searchParams.set('X-User-Id', stranger.id);
+      await ctx.http().get(pathOf(otherUser.toString())).expect(403);
+
       await ctx.http().get(url.pathname).expect(403);
+    });
+
+    it('stop working right away when access is removed', async () => {
+      const media = await uploadOk(owner);
+      await grant(media.id, friend.id, 'add').expect(200);
+      const res = await ctx
+        .http()
+        .get(`/media/${media.id}`)
+        .auth(friend.accessToken, { type: 'bearer' })
+        .expect(200);
+      const friendUrl = pathOf(res.body.url);
+      const first = await ctx.http().get(friendUrl).expect(200);
+
+      await grant(media.id, friend.id, 'remove').expect(200);
+
+      // same url, not expired yet, but the friend can't see the file anymore
+      await ctx.http().get(friendUrl).expect(403);
+      // not even with the cached copy's etag
+      await ctx
+        .http()
+        .get(friendUrl)
+        .set('If-None-Match', first.headers.etag)
+        .expect(403);
+      // the owner's own url still works
+      await ctx.http().get(pathOf(media.url)).expect(200);
+    });
+
+    it('return 304 for a cached copy while access is still there', async () => {
+      const media = await uploadOk(owner);
+      const first = await ctx.http().get(pathOf(media.url)).expect(200);
+      await ctx
+        .http()
+        .get(pathOf(media.url))
+        .set('If-None-Match', first.headers.etag)
+        .expect(304);
     });
 
     it('return 404 after the file is deleted', async () => {
